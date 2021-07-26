@@ -6,6 +6,7 @@ import argparse
 from collections import OrderedDict
 
 from timm.utils import accuracy, AverageMeter, setup_default_logging
+from torch.nn.modules import loss
 
 from codebase.networks.natnet import NATNet
 from codebase.data_providers.factory import get_dataloader
@@ -25,7 +26,11 @@ def validate(model, loader, criterion, log_freq=50):
             input = input.cuda()
 
             # compute output
-            output = model(input)
+            # output = model(input)
+            # import pdb
+            # pdb.set_trace()
+            with torch.no_grad():
+                output = torch.nn.functional.softmax(model(input), dim=0)
             loss = criterion(output, target)
 
             # measure accuracy and record loss
@@ -94,7 +99,7 @@ if __name__ == '__main__':
                         help='name of the dataset (imagenet, cifar10, cifar100, ...)')
     parser.add_argument('-j', '--workers', type=int, default=6,
                         help='number of workers for data loading')
-    parser.add_argument('-b', '--batch-size', type=int, default=256,
+    parser.add_argument('-b', '--batch-size', type=int, default=64,
                         help='test batch size for inference')
     parser.add_argument('--img-size', type=int, default=224,
                         help='input resolution (128 -> 224)')
